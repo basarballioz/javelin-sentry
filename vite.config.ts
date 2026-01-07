@@ -5,24 +5,14 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   server: {
     port: 3000,
-    host: '0.0.0.0',
-    proxy: {
-      '/api/proxy': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            // Vite dev server'da bu proxy kullanılmayacak
-            // Bunun yerine custom middleware kullanacağız
-          });
-        }
-      }
-    }
+    host: '0.0.0.0'
   },
   plugins: [
     react(),
     {
       name: 'api-proxy',
+      // Local development için /api/proxy endpoint'i
+      // Vercel'deki serverless function'ın aynısını burada çalıştırıyoruz
       configureServer(server) {
         server.middlewares.use('/api/proxy', async (req, res) => {
           const url = new URL(req.url || '', 'http://localhost').searchParams.get('url');
