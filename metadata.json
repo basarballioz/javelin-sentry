@@ -1,0 +1,5 @@
+{
+  "name": "Sentry Alert System (Com.tr)",
+  "description": "A robust frontend-based monitoring dashboard that checks API health status and sends Telegram alerts.",
+  "requestFramePermissions": []
+}

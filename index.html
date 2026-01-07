@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Javelin - Defense Grid Dashboard</title>
+    <meta name="description" content="A robust, real-time API monitoring dashboard that checks health status and sends Telegram alerts.">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://api-sentinel.vercel.app/">
+    <meta property="og:title" content="Javelin - Defense Grid Dashboard">
+    <meta property="og:description" content="Monitor your API endpoints in real-time with visual analytics and Telegram notifications.">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z'/%3E%3Cpath d='m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z'/%3E%3Cpath d='M9 12H4s.55-3.03 2-4c1.62-1.08 5-2 5-2'/%3E%3Cpath d='M12 15v5s3.03-.55 4-2c1.08-1.62 2-5 2-5'/%3E%3C/svg%3E">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class', 
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            animation: {
+              'spin-slow': 'spin 3s linear infinite',
+              'heartbeat': 'heartbeat 2s ease-in-out infinite',
+            },
+            keyframes: {
+              heartbeat: {
+                '0%, 100%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(1.1)' },
+              }
+            },
+            backgroundImage: {
+              'grid-pattern': "linear-gradient(to right, #3341551a 1px, transparent 1px), linear-gradient(to bottom, #3341551a 1px, transparent 1px)",
+            },
+            backgroundSize: {
+              'grid-pattern': '40px 40px',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #475569; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #64748b; 
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+      }
+      body {
+        font-feature-settings: "cv11", "ss01";
+      }
+    </style>
+  </head>
+  <body class="antialiased transition-colors duration-300 overflow-x-hidden">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
