@@ -21,6 +21,8 @@ Built for developers who want a quick, no-nonsense way to monitor their services
 - **Dark/Light Mode** – Because your eyes matter
 - **Zero Backend Required** – Runs entirely in your browser (data stored in localStorage)
 
+![Kayıt 2026-01-10 154528](https://github.com/user-attachments/assets/c6cad95a-4cdc-475a-b9c8-54e309ee469c)
+
 ## How It Works
 
 ```
