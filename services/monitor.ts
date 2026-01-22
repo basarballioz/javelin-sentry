@@ -1,7 +1,10 @@
 import { ApiResponse } from '../types';
 
+import { UserAgentType } from '../types';
+
 export const checkApi = async (
-  url: string
+  url: string,
+  userAgentType: UserAgentType = UserAgentType.SMART
 ): Promise<{ isUp: boolean; responseData?: ApiResponse; error?: string; latency: number }> => {
   const start = performance.now();
 
@@ -9,7 +12,7 @@ export const checkApi = async (
     let targetUrl = url.trim();
     if (!targetUrl.startsWith('http')) targetUrl = 'https://' + targetUrl;
     
-    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}&ua=${encodeURIComponent(userAgentType)}`;
     const response = await fetch(proxyUrl);
     const data = await response.json();
     

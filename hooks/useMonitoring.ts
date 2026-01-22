@@ -67,7 +67,9 @@ export const useMonitoring = (config: MonitorConfig) => {
     setApis(prev => prev.map(a => a.id === apiId ? { ...a, status: ApiStatus.CHECKING } : a));
     
     const normalized = normalizeUrl(url);
-    const { isUp, responseData, error, latency } = await checkApi(normalized);
+    const api = apisRef.current.find(a => a.id === apiId);
+    const uaType = api ? api.userAgentType : undefined;
+    const { isUp, responseData, error, latency } = await checkApi(normalized, uaType);
     const now = Date.now();
 
     setApis(prev => prev.map(a => {
