@@ -25,8 +25,6 @@ export const checkApi = async (
     const end = performance.now();
     const latency = Math.round(end - start);
 
-    console.log('[checkApi] Response:', { ok: data.ok, status: data.status, bodyLength: data.body?.length, bodyPreview: data.body?.substring(0, 200) });
-    
     if (data.ok) {
       return {
         isUp: true,

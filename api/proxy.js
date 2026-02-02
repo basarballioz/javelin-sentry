@@ -52,9 +52,8 @@ export default async function handler(req, res) {
     try {
       const text = await response.text();
       body = text.substring(0, 50000);
-      console.log('[Proxy] Fetched body length:', body.length, 'from:', targetUrl);
     } catch (e) {
-      console.log('[Proxy] Error reading body:', e);
+      // Body read error - continue with empty body
     }
 
     return res.status(200).json({

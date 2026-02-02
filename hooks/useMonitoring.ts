@@ -81,28 +81,38 @@ export const useMonitoring = (config: MonitorConfig) => {
       const jsonKey = api.validationConfig.jsonKey;
       const jsonValue = api.validationConfig.jsonValue;
       
-      console.log('[JSON Validation] Config:', { jsonKey, jsonValue, bodyLength: body?.length });
-      
       if (jsonKey && body !== undefined && body.length > 0) {
         try {
           const jsonBody = JSON.parse(body);
-          const actualValue = jsonBody[jsonKey];
+          
+          // Support nested keys like "data.status" or "result.items.count"
+          const keys = jsonKey.split('.');
+          let actualValue: any = jsonBody;
+          for (const k of keys) {
+            if (actualValue && typeof actualValue === 'object') {
+              actualValue = actualValue[k];
+            } else {
+              actualValue = undefined;
+              break;
+            }
+          }
+          
           const expectedValue = jsonValue;
           
           // Compare as strings for flexibility
-          const matches = String(actualValue) === String(expectedValue);
-          
-          console.log('[JSON Validation] Result:', { actualValue, expectedValue, matches });
+          const matches = actualValue !== undefined && String(actualValue) === String(expectedValue);
           
           if (!matches) {
             isUp = false;
-            error = `JSON key "${jsonKey}" = "${actualValue}" (expected "${expectedValue}")`;
+            error = `JSON "${jsonKey}" = "${actualValue ?? 'undefined'}" (expected "${expectedValue}")`;
           }
         } catch (e) {
-          console.log('[JSON Validation] Parse error:', e);
           isUp = false;
           error = `Response is not valid JSON`;
         }
+      } else if (jsonKey && (!body || body.length === 0)) {
+        isUp = false;
+        error = `No response body to validate JSON`;
       }
     }
 
@@ -111,32 +121,31 @@ export const useMonitoring = (config: MonitorConfig) => {
       const keyword = api.validationConfig.keyword;
       const invertKeyword = api.validationConfig.invertKeyword;
       
-      console.log('[Keyword Validation] Config:', { keyword, invertKeyword, bodyLength: body?.length, hasBody: body !== undefined });
-      
       if (keyword && body !== undefined && body.length > 0) {
-        // Exact word match using word boundaries
-        const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        // Exact word match using word boundaries (case-insensitive)
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i');
         const keywordFound = regex.test(body);
-        
-        console.log('[Keyword Validation] Result:', { keywordFound, keyword, invertKeyword });
         
         if (invertKeyword) {
           // FAIL if keyword found
           if (keywordFound) {
             isUp = false;
             error = `Keyword "${keyword}" found (fail condition)`;
-            console.log('[Keyword Validation] FAILING - keyword found with invert=true');
           }
         } else {
           // FAIL if keyword NOT found
           if (!keywordFound) {
             isUp = false;
             error = `Keyword "${keyword}" not found`;
-            console.log('[Keyword Validation] FAILING - keyword not found with invert=false');
           }
         }
-      } else {
-        console.log('[Keyword Validation] SKIPPED - no keyword or no body', { keyword, bodyExists: body !== undefined, bodyLength: body?.length });
+      } else if (keyword && (!body || body.length === 0)) {
+        // No body to search in
+        if (!invertKeyword) {
+          isUp = false;
+          error = `No response body to search for keyword "${keyword}"`;
+        }
       }
     }
 

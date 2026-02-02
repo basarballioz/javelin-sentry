@@ -127,9 +127,12 @@ export const EditApiModal: React.FC<EditApiModalProps> = ({ api, isOpen, onClose
           </div>
 
           {validationType === ValidationType.JSON_EXACT && (
-            <div className="bg-slate-950/50 rounded-lg border border-slate-800 p-4 grid grid-cols-2 gap-3">
-              <input type="text" placeholder="Key (e.g. status)" value={jsonKey} onChange={(e) => setJsonKey(e.target.value)} className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200" />
-              <input type="text" placeholder="Value" value={jsonValue} onChange={(e) => setJsonValue(e.target.value)} className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200" />
+            <div className="bg-slate-950/50 rounded-lg border border-slate-800 p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="Key (e.g. data.status)" value={jsonKey} onChange={(e) => setJsonKey(e.target.value)} className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200" />
+                <input type="text" placeholder="Expected value" value={jsonValue} onChange={(e) => setJsonValue(e.target.value)} className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200" />
+              </div>
+              <p className="text-[10px] text-slate-500 leading-tight">Supports nested keys with dot notation: <code className="text-slate-400">data.user.name</code></p>
             </div>
           )}
 
