@@ -18,8 +18,15 @@ export const checkApi = async (
     let targetUrl = url.trim();
     if (!targetUrl.startsWith("http")) targetUrl = "https://" + targetUrl;
 
-    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}&ua=${encodeURIComponent(userAgentType)}`;
-    const response = await fetch(proxyUrl);
+    // Add cache-busting timestamp to prevent 304 responses
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}&ua=${encodeURIComponent(userAgentType)}&_t=${Date.now()}`;
+    const response = await fetch(proxyUrl, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     const data = await response.json();
 
     const end = performance.now();

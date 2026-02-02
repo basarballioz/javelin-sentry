@@ -81,16 +81,23 @@ export const useMonitoring = (config: MonitorConfig) => {
       const jsonKey = api.validationConfig.jsonKey;
       const jsonValue = api.validationConfig.jsonValue;
       
-      if (jsonKey && body !== undefined && body.length > 0) {
+      if (jsonKey && body !== undefined && body !== null && String(body).length > 0) {
         try {
           // Try to parse body - handle both string and already-parsed JSON
           let jsonBody: any;
-          if (typeof body === 'string') {
+          
+          // Check if body is already an object (pre-parsed)
+          if (typeof body === 'object' && body !== null) {
+            jsonBody = body;
+          } else if (typeof body === 'string') {
             // Trim whitespace and BOM characters that might interfere with parsing
             const cleanBody = body.trim().replace(/^\uFEFF/, '');
+            if (cleanBody.length === 0) {
+              throw new Error('Empty response body');
+            }
             jsonBody = JSON.parse(cleanBody);
           } else {
-            jsonBody = body;
+            throw new Error(`Unexpected body type: ${typeof body}`);
           }
           
           // Support nested keys like "data.status", "result.items.count", or array access like "bikes.0.Year"
@@ -141,11 +148,13 @@ export const useMonitoring = (config: MonitorConfig) => {
           }
         } catch (e: any) {
           isUp = false;
-          // Provide more helpful error message
-          const snippet = typeof body === 'string' ? body.substring(0, 100) : '';
-          error = `Response is not valid JSON${snippet ? ` (starts with: ${snippet}...)` : ''}`;
+          // Provide more helpful error message with actual parse error
+          const parseError = e?.message || 'Unknown error';
+          const bodyType = typeof body;
+          const snippet = typeof body === 'string' ? body.substring(0, 80) : JSON.stringify(body)?.substring(0, 80);
+          error = `JSON parse failed: ${parseError} (type: ${bodyType}, starts: ${snippet}...)`;
         }
-      } else if (jsonKey && (!body || body.length === 0)) {
+      } else if (jsonKey && (!body || String(body).length === 0)) {
         isUp = false;
         error = `No response body to validate JSON`;
       }
