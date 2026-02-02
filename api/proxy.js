@@ -1,3 +1,22 @@
+// Helper function to truncate large arrays in JSON while keeping structure valid
+function truncateLargeArrays(obj, maxItems = 10) {
+  if (Array.isArray(obj)) {
+    // Truncate array and add a marker
+    const truncated = obj.slice(0, maxItems).map(item => truncateLargeArrays(item, maxItems));
+    if (obj.length > maxItems) {
+      truncated.push({ _truncated: true, _originalLength: obj.length });
+    }
+    return truncated;
+  } else if (obj && typeof obj === 'object') {
+    const result = {};
+    for (const key of Object.keys(obj)) {
+      result[key] = truncateLargeArrays(obj[key], maxItems);
+    }
+    return result;
+  }
+  return obj;
+}
+
 export default async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -49,9 +68,35 @@ export default async function handler(req, res) {
     clearTimeout(timeout);
 
     let body = '';
+    let isJson = false;
     try {
       const text = await response.text();
-      body = text.substring(0, 50000);
+      const contentType = response.headers.get('content-type') || '';
+      
+      // Check if response is JSON
+      if (contentType.includes('application/json') || text.trim().startsWith('{') || text.trim().startsWith('[')) {
+        try {
+          // Parse and re-stringify to validate JSON, but limit size for large responses
+          const parsed = JSON.parse(text);
+          isJson = true;
+          
+          // For very large JSON, we need to be smart about truncation
+          // Keep full JSON if under 100KB, otherwise truncate arrays
+          if (text.length <= 100000) {
+            body = text;
+          } else {
+            // Truncate large arrays to first 10 items to keep JSON valid
+            const truncated = truncateLargeArrays(parsed, 10);
+            body = JSON.stringify(truncated);
+          }
+        } catch (jsonErr) {
+          // Not valid JSON, treat as text
+          body = text.substring(0, 50000);
+        }
+      } else {
+        // Non-JSON response, safe to truncate
+        body = text.substring(0, 50000);
+      }
     } catch (e) {
       // Body read error - continue with empty body
     }
@@ -59,7 +104,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: response.status >= 200 && response.status < 400,
       status: response.status,
-      body: body
+      body: body,
+      isJson: isJson
     });
 
   } catch (error) {
