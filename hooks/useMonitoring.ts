@@ -83,7 +83,9 @@ export const useMonitoring = (config: MonitorConfig) => {
       console.log('[Keyword Validation] Config:', { keyword, invertKeyword, bodyLength: body?.length, hasBody: body !== undefined });
       
       if (keyword && body !== undefined && body.length > 0) {
-        const keywordFound = body.toLowerCase().includes(keyword.toLowerCase());
+        // Exact word match using word boundaries
+        const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        const keywordFound = regex.test(body);
         
         console.log('[Keyword Validation] Result:', { keywordFound, keyword, invertKeyword });
         
