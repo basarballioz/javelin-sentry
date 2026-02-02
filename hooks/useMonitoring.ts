@@ -80,22 +80,30 @@ export const useMonitoring = (config: MonitorConfig) => {
       const keyword = api.validationConfig.keyword;
       const invertKeyword = api.validationConfig.invertKeyword;
       
-      if (keyword && body !== undefined) {
+      console.log('[Keyword Validation] Config:', { keyword, invertKeyword, bodyLength: body?.length, hasBody: body !== undefined });
+      
+      if (keyword && body !== undefined && body.length > 0) {
         const keywordFound = body.toLowerCase().includes(keyword.toLowerCase());
+        
+        console.log('[Keyword Validation] Result:', { keywordFound, keyword, invertKeyword });
         
         if (invertKeyword) {
           // FAIL if keyword found
           if (keywordFound) {
             isUp = false;
             error = `Keyword "${keyword}" found (fail condition)`;
+            console.log('[Keyword Validation] FAILING - keyword found with invert=true');
           }
         } else {
           // FAIL if keyword NOT found
           if (!keywordFound) {
             isUp = false;
             error = `Keyword "${keyword}" not found`;
+            console.log('[Keyword Validation] FAILING - keyword not found with invert=false');
           }
         }
+      } else {
+        console.log('[Keyword Validation] SKIPPED - no keyword or no body', { keyword, bodyExists: body !== undefined, bodyLength: body?.length });
       }
     }
 
