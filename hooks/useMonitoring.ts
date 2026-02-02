@@ -76,6 +76,37 @@ export const useMonitoring = (config: MonitorConfig) => {
     let isUp = httpIsUp;
     let error = httpError;
 
+    // JSON Match validation
+    if (api && httpIsUp && api.validationConfig.type === ValidationType.JSON_EXACT) {
+      const jsonKey = api.validationConfig.jsonKey;
+      const jsonValue = api.validationConfig.jsonValue;
+      
+      console.log('[JSON Validation] Config:', { jsonKey, jsonValue, bodyLength: body?.length });
+      
+      if (jsonKey && body !== undefined && body.length > 0) {
+        try {
+          const jsonBody = JSON.parse(body);
+          const actualValue = jsonBody[jsonKey];
+          const expectedValue = jsonValue;
+          
+          // Compare as strings for flexibility
+          const matches = String(actualValue) === String(expectedValue);
+          
+          console.log('[JSON Validation] Result:', { actualValue, expectedValue, matches });
+          
+          if (!matches) {
+            isUp = false;
+            error = `JSON key "${jsonKey}" = "${actualValue}" (expected "${expectedValue}")`;
+          }
+        } catch (e) {
+          console.log('[JSON Validation] Parse error:', e);
+          isUp = false;
+          error = `Response is not valid JSON`;
+        }
+      }
+    }
+
+    // Keyword Match validation
     if (api && httpIsUp && api.validationConfig.type === ValidationType.KEYWORD_MATCH) {
       const keyword = api.validationConfig.keyword;
       const invertKeyword = api.validationConfig.invertKeyword;
