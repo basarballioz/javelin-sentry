@@ -83,14 +83,44 @@ export const useMonitoring = (config: MonitorConfig) => {
       
       if (jsonKey && body !== undefined && body.length > 0) {
         try {
-          const jsonBody = JSON.parse(body);
+          // Try to parse body - handle both string and already-parsed JSON
+          let jsonBody: any;
+          if (typeof body === 'string') {
+            // Trim whitespace and BOM characters that might interfere with parsing
+            const cleanBody = body.trim().replace(/^\uFEFF/, '');
+            jsonBody = JSON.parse(cleanBody);
+          } else {
+            jsonBody = body;
+          }
           
-          // Support nested keys like "data.status" or "result.items.count"
+          // Support nested keys like "data.status", "result.items.count", or array access like "bikes.0.Year"
           const keys = jsonKey.split('.');
           let actualValue: any = jsonBody;
+          
           for (const k of keys) {
-            if (actualValue && typeof actualValue === 'object') {
-              actualValue = actualValue[k];
+            if (actualValue === null || actualValue === undefined) {
+              actualValue = undefined;
+              break;
+            }
+            
+            // Handle array index access (numeric keys)
+            if (Array.isArray(actualValue) && /^\d+$/.test(k)) {
+              actualValue = actualValue[parseInt(k, 10)];
+            } else if (typeof actualValue === 'object') {
+              // Handle object property access (case-insensitive fallback)
+              if (k in actualValue) {
+                actualValue = actualValue[k];
+              } else {
+                // Try case-insensitive match
+                const lowerK = k.toLowerCase();
+                const matchingKey = Object.keys(actualValue).find(key => key.toLowerCase() === lowerK);
+                if (matchingKey) {
+                  actualValue = actualValue[matchingKey];
+                } else {
+                  actualValue = undefined;
+                  break;
+                }
+              }
             } else {
               actualValue = undefined;
               break;
@@ -99,16 +129,21 @@ export const useMonitoring = (config: MonitorConfig) => {
           
           const expectedValue = jsonValue;
           
-          // Compare as strings for flexibility
-          const matches = actualValue !== undefined && String(actualValue) === String(expectedValue);
+          // Compare as strings for flexibility (handles number/string type differences)
+          const matches = actualValue !== undefined && actualValue !== null && 
+            String(actualValue).toLowerCase() === String(expectedValue).toLowerCase();
           
           if (!matches) {
             isUp = false;
-            error = `JSON "${jsonKey}" = "${actualValue ?? 'undefined'}" (expected "${expectedValue}")`;
+            const displayActual = actualValue === undefined ? 'key not found' : 
+                                  actualValue === null ? 'null' : String(actualValue);
+            error = `JSON "${jsonKey}" = "${displayActual}" (expected "${expectedValue}")`;
           }
-        } catch (e) {
+        } catch (e: any) {
           isUp = false;
-          error = `Response is not valid JSON`;
+          // Provide more helpful error message
+          const snippet = typeof body === 'string' ? body.substring(0, 100) : '';
+          error = `Response is not valid JSON${snippet ? ` (starts with: ${snippet}...)` : ''}`;
         }
       } else if (jsonKey && (!body || body.length === 0)) {
         isUp = false;

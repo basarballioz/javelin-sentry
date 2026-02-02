@@ -155,13 +155,12 @@ export const AddApiConfirmModal: React.FC<AddApiConfirmModalProps> = ({
 
                 {/* Strategy Details */}
                 {validationType === ValidationType.JSON_EXACT && (
-                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 grid grid-cols-2 gap-3 animate-in slide-in-from-top-2">
-                        <div>
+                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3 animate-in slide-in-from-top-2">
+                        <div className="grid grid-cols-2 gap-3">
                             <input type="text" placeholder="Key (e.g. status)" value={jsonKey} onChange={(e) => setJsonKey(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200" />
-                        </div>
-                        <div>
                             <input type="text" placeholder="Value" value={jsonValue} onChange={(e) => setJsonValue(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-200" />
                         </div>
+                        <p className="text-[10px] text-slate-500 leading-tight">Dot notation: <code className="text-slate-400">data.user.name</code> — Array: <code className="text-slate-400">bikes.0.Year</code></p>
                     </div>
                 )}
 
