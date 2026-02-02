@@ -48,9 +48,17 @@ export default async function handler(req, res) {
 
     clearTimeout(timeout);
 
+    let body = '';
+    try {
+      const text = await response.text();
+      body = text.substring(0, 50000);
+    } catch (e) {
+    }
+
     return res.status(200).json({
       ok: response.status >= 200 && response.status < 400,
-      status: response.status
+      status: response.status,
+      body: body
     });
 
   } catch (error) {

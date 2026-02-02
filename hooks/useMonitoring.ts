@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ApiEntry, ApiStatus, LogEntry, MonitorConfig, Incident } from '../types';
+import { ApiEntry, ApiStatus, LogEntry, MonitorConfig, Incident, ValidationType, ValidationConfig, UserAgentType } from '../types';
 import { checkApi } from '../services/monitor';
 import { sendTelegramAlert, sendSlackAlert, sendDiscordAlert } from '../services/notifier';
 import { playSystemSound } from '../services/audio';
@@ -69,8 +69,35 @@ export const useMonitoring = (config: MonitorConfig) => {
     const normalized = normalizeUrl(url);
     const api = apisRef.current.find(a => a.id === apiId);
     const uaType = api ? api.userAgentType : undefined;
-    const { isUp, responseData, error, latency } = await checkApi(normalized, uaType);
+    const { isUp: httpIsUp, responseData, error: httpError, latency, body } = await checkApi(normalized, uaType);
     const now = Date.now();
+
+    // Apply validation based on validationConfig
+    let isUp = httpIsUp;
+    let error = httpError;
+
+    if (api && httpIsUp && api.validationConfig.type === ValidationType.KEYWORD_MATCH) {
+      const keyword = api.validationConfig.keyword;
+      const invertKeyword = api.validationConfig.invertKeyword;
+      
+      if (keyword && body !== undefined) {
+        const keywordFound = body.toLowerCase().includes(keyword.toLowerCase());
+        
+        if (invertKeyword) {
+          // FAIL if keyword found
+          if (keywordFound) {
+            isUp = false;
+            error = `Keyword "${keyword}" found (fail condition)`;
+          }
+        } else {
+          // FAIL if keyword NOT found
+          if (!keywordFound) {
+            isUp = false;
+            error = `Keyword "${keyword}" not found`;
+          }
+        }
+      }
+    }
 
     setApis(prev => prev.map(a => {
       if (a.id !== apiId) return a;
